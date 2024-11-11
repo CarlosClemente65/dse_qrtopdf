@@ -44,7 +44,7 @@ class Program
             {
                 Width = utiles.tamañoQRPx,
                 Height = utiles.tamañoQRPx,
-                Margin = utiles.margen
+                Margin = utiles.margenPx
             }
         };
 

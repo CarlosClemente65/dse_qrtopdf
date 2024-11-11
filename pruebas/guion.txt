@@ -3,4 +3,4 @@ SALIDA="C:\Programacion\c#\dse_qrtopdf\pruebas\salida.pdf"
 TEXTOQR="Texto para el QR"
 ALINEACION=IZQUIERDA
 TAMAÑO=30
-MARGEN=4
+MARGEN=1
