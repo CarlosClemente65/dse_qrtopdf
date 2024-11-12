@@ -44,13 +44,13 @@ class Program
             {
                 Width = utiles.tamañoQRPx,
                 Height = utiles.tamañoQRPx,
-                Margin = utiles.margenPx
+                Margin = 0
             }
         };
 
 
-        Font font = new Font("Arial", 10, FontStyle.Bold);
-        int tamañoBitmap = utiles.tamañoQRPx + (utiles.margenPx * 2) + (font.Height * 2);
+        Font font = new Font("Arial", 8, FontStyle.Bold);
+        int tamañoBitmap = utiles.tamañoQRPx + utiles.margenPx + font.Height / 2; //Se añaden 3 Px para separar el texto del QR
 
         Bitmap qrImage = writer.Write(utiles.textoQR);
         Bitmap bitmapConTexto = new Bitmap(tamañoBitmap, tamañoBitmap);
@@ -64,14 +64,17 @@ class Program
                 Alignment = StringAlignment.Center
             };
 
+            // Calcular la posición horizontal para centrar la imagen QR
+            int xCentro = (tamañoBitmap - utiles.tamañoQRPx) / 2;
+
             // Dibujar la imagen del QR en el centro
-            graphics.DrawImage(qrImage, utiles.margenPx, font.Height, utiles.tamañoQRPx, utiles.tamañoQRPx);
+            graphics.DrawImage(qrImage, xCentro, font.Height / 2 , utiles.tamañoQRPx, utiles.tamañoQRPx);
 
             // Dibujar el texto superior
             graphics.DrawString("QR tributario", font, Brushes.Black, new RectangleF(0, 0, tamañoBitmap, font.Height), formatoTexto);
 
             // Dibujar el texto inferior
-            graphics.DrawString("VERI*FATU", font, Brushes.Black, new RectangleF(0, utiles.tamañoQRPx + font.Height + utiles.margenPx, tamañoBitmap, font.Height), formatoTexto);
+            graphics.DrawString("VERI*FATU", font, Brushes.Black, new RectangleF(0, utiles.tamañoQRPx - font.Height / 2, tamañoBitmap, font.Height), formatoTexto);
         }
 
 
@@ -91,7 +94,9 @@ class Program
                     PdfContentByte content = stamper.GetOverContent(1); // Índice de la página (1 es la primera página)
 
                     // Convertir las coordenadas de milímetros a puntos (1mm = 2.83465 puntos)
-                    float x = utiles.convierteAPx(utiles.coordenadaX);
+                    float x = utiles.convierteAPx(utiles.margen);
+                    if (utiles.alineacion == "DERECHA") x = 595 - imagenQR.Width - utiles.convierteAPx(utiles.margen);
+
                     float y = (float)(reader.GetPageSize(1).Height - utiles.convierteAPx(utiles.coordenadaY) - imagenQR.Height);
 
 
