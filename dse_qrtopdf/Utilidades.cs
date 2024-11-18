@@ -16,8 +16,9 @@ namespace dse_qrtopdf
         public string alineacion = "IZQUIERDA";
         public int dpi = 96; //Resolucion en DPI
         public float pulgadas = 25.4f;
-        public int tamañoQRPx = 85; //Tamaño por defecto de 30mm (30 * 72 / 25.4)
-        public int margenPx = 11; //Tamaño por defecto de 4mm (4 * 72 / 25.4)
+        public int tamañoQRPx = 113; //Tamaño por defecto de 30mm (30 * 96 / 25.4)
+        public int margenPx = 8; //Tamaño por defecto de 2mm (2 * 96 / 25.4)
+        public string proceso = string.Empty;
 
 
 
@@ -48,7 +49,7 @@ namespace dse_qrtopdf
                             break;
 
                         case "SALIDA":
-                            PDFSalida = valor.Contains("\\") ? valor : Path.Combine(pathFicheros, valor); ;
+                            PDFSalida = valor.Contains("\\") ? valor : Path.Combine(pathFicheros, valor); 
                             break;
 
                         case "TEXTOQR":
@@ -68,6 +69,10 @@ namespace dse_qrtopdf
                         case "MARGEN":
                             margen = Convert.ToInt32(valor);
                             margenPx = (int)convierteAPx(margen);
+                            break;
+
+                        case "TIPO":
+                            proceso = valor;
                             break;
                     }
                 }

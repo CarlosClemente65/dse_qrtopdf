@@ -1,0 +1,3 @@
+ENTRADA="C:\Programacion\c#\dse_qrtopdf\pruebas\archivo.pdf"
+SALIDA="C:\Programacion\c#\dse_qrtopdf\pruebas\salida_marca.pdf"
+TIPO=2
