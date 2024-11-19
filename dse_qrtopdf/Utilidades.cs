@@ -10,9 +10,7 @@ namespace dse_qrtopdf
         public string PDFSalida = string.Empty; //Fichero de salida
         public string textoQR = string.Empty; //Texto a insertar en el QR
         public int margen = 2; //Representa la distancia respecto al margen izquierdo / derecho a añadir al recuadro del QR
-        public int anchoQR = 30 + 8; //Tamaño del QR en milimetros (se añaden 4mm a derecha e izquierda del margen)
-        public float coordenadaX = 3; //Coordenada X desde la esquina superior izquierda
-        public float coordenadaY = 3; //Coordenada Y desde la esquina superior izquierda
+        public int anchoQR = 30; //Tamaño del QR en milimetros
         public string alineacion = "IZQUIERDA";
         public int dpi = 96; //Resolucion en DPI
         public float pulgadas = 25.4f;
@@ -63,7 +61,7 @@ namespace dse_qrtopdf
                             break;
 
                         case "ALINEACION":
-                            alineacion = valor;
+                            alineacion = valor.ToUpper();
                             break;
 
                         case "MARGEN":
@@ -76,7 +74,6 @@ namespace dse_qrtopdf
                             break;
                     }
                 }
-                if (alineacion == "DERECHA") coordenadaX = 210 - (3 * 2) - anchoQR - (margen * 2);
             }
         }
 

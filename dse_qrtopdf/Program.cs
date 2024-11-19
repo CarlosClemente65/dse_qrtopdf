@@ -55,7 +55,8 @@ class Program
             {
                 Width = utiles.tamañoQRPx,
                 Height = utiles.tamañoQRPx,
-                Margin = 0
+                Margin = 0,
+                NoPadding = true //Se quitan los espacios del QR para luego situarlo mejor en el bitmap
             }
         };
 
@@ -64,57 +65,35 @@ class Program
         //Seleccion del tipo de fuente
         System.Drawing.Font font = new System.Drawing.Font("Arial", 8, FontStyle.Bold);
         Brush pincel = Brushes.Black;
-        int altoFuente = font.Height * 96 / 72;
+        int altoFuente = font.Height;
 
         //Medidas del bitmap
         int anchoBitmap = qrImage.Width;
-        int altoBitmap = qrImage.Height + (altoFuente);
+        int altoBitmap = qrImage.Height + (altoFuente * 3); //Se multiplica por 3 para añadir una separacion entre el texto y el QR ya que se posiciona en el centro del cuadro de imagen
 
-        //int tamañoBitmap = utiles.tamañoQRPx + (font.Height * 96 / 72); //Se añade la altura de la fuente para que pueda ponerse el texto superior e inferior
-
-        //Bitmap bitmapConTexto = new Bitmap(tamañoBitmap, tamañoBitmap);
         Bitmap bitmapConTexto = new Bitmap(anchoBitmap, altoBitmap);
 
         using(Graphics graphics = Graphics.FromImage(bitmapConTexto))
         {
             graphics.Clear(Color.White);
 
-            // Dibujar el texto encima
-            string texto1 = "QR Tributario";
-            SizeF tamañoTextoEncima = graphics.MeasureString(texto1, font);
-            float posicionXEncima = (anchoBitmap - tamañoTextoEncima.Width) / 2; // Centrar el texto
-            graphics.DrawString(texto1, font, pincel, posicionXEncima, 0);
+            // Dibujar el código QR primero para luego colocar encima los textos
+            graphics.DrawImage(qrImage, 0, (bitmapConTexto.Height - qrImage.Height) / 2, qrImage.Width, qrImage.Height); //Se posiciona en el centro del eje Y (altura)
 
-            // Dibujar el código QR
-            graphics.DrawImage(qrImage, 0, (bitmapConTexto.Height - qrImage.Height), qrImage.Width, qrImage.Height);
+            // Dibujar el texto superior
+            string textoSup = "QR Tributario";
+            SizeF tamañoTextoSup = graphics.MeasureString(textoSup, font);
+            float posicionXSup = (anchoBitmap - tamañoTextoSup.Width) / 2; // Centrar el texto horizontalmente
+            float posicionYSup = 0; //Se pone pegado al borde superior
+            graphics.DrawString(textoSup, font, pincel, posicionXSup, posicionYSup);
 
-            // Dibujar el texto debajo
-            string texto2 = "VERI*FACTU";
-            SizeF tamañoTextoDebajo = graphics.MeasureString(texto2, font);
-            float posicionXDebajo = (anchoBitmap - tamañoTextoDebajo.Width) / 2; // Centrar el texto
-            graphics.DrawString(texto2, font, pincel, posicionXDebajo, (altoBitmap - altoFuente));
-
-
-            ////StringFormat formatoTexto = new StringFormat
-            ////{
-            ////    Alignment = StringAlignment.Center
-            ////};
-
-            ////// Calcular la posición para centrar la imagen QR
-            ////int posicionX = (tamañoBitmap - utiles.tamañoQRPx) / 2;
-            ////int posicionY = tamañoBitmap - utiles.tamañoQRPx;
-
-            ////// Dibujar la imagen del QR en el centro
-            ////graphics.DrawImage(qrImage, posicionX, posicionY, utiles.tamañoQRPx, utiles.tamañoQRPx);
-
-            ////// Dibujar el texto superior
-            ////graphics.DrawString("QR tributario", font, Brushes.Black, new RectangleF(0, 0, tamañoBitmap, font.Height), formatoTexto);
-
-            ////int coordenadaY = tamañoBitmap - (font.Height * 96 / 72);
-            ////// Dibujar el texto inferior
-            ////graphics.DrawString("VERI*FATU", font, Brushes.Black, new RectangleF(0, coordenadaY, tamañoBitmap, font.Height), formatoTexto);
+            // Dibujar el texto inferior
+            string textoInf = "VERI*FACTU";
+            SizeF tamañoTextoInf = graphics.MeasureString(textoInf, font);
+            float posicionXInf = (anchoBitmap - tamañoTextoInf.Width) / 2; // Centrar el texto
+            float posicionYInf = altoBitmap - altoFuente;
+            graphics.DrawString(textoInf, font, pincel, posicionXInf, posicionYInf);
         }
-
 
         return bitmapConTexto;
     }
@@ -131,20 +110,20 @@ class Program
                     // Obtener la primera página del PDF 
                     PdfContentByte content = stamper.GetOverContent(1); // Índice de la página (1 es la primera página)
 
-                    // Convertir las coordenadas de milímetros a puntos (1mm = 2.83465 puntos)
-                    float x = utiles.convierteAPx(utiles.margen);
-                    if (utiles.alineacion == "DERECHA") x = 595 - imagenQR.Width - utiles.convierteAPx(utiles.margen);
+                    float x = utiles.alineacion != "DERECHA" 
+                        ? utiles.margen * 72 / 25.4f 
+                        : 595 - imagenQR.Width - utiles.convierteAPx(utiles.margen); //Se calcula la posicion x en funcion de si esta alineado a la izquierda o derecha
 
-                    float y = (float)(reader.GetPageSize(1).Height - utiles.convierteAPx(utiles.coordenadaY) - imagenQR.Height);
-
+                    float y = reader.GetPageSize(1).Height - imagenQR.Height - utiles.margen * 72 / 25.4f; //Se pasan los milimetros a dpi (mm * 72 / 25.4)
 
                     // Convertir Bitmap en iTextSharp imagen
                     using(var stream = new MemoryStream())
                     {
-                        imagenQR.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                        imagenQR.SetResolution(utiles.dpi, utiles.dpi);
+                        imagenQR.Save(stream, ImageFormat.Png);
                         Image textoImagenQR = Image.GetInstance(stream.ToArray());
+                        textoImagenQR.ScaleAbsolute(imagenQR.Width, imagenQR.Height); // Ajustar las dimensiones en el PDF
                         textoImagenQR.SetAbsolutePosition(x, y);
-                        textoImagenQR.ScaleAbsolute(imagenQR.Width, imagenQR.Height);  // Ajusta el tamaño de la imagen
                         content.AddImage(textoImagenQR);
                     }
                     stamper.Close();
@@ -193,7 +172,7 @@ class Program
                         BaseFont font = BaseFont.CreateFont(BaseFont.HELVETICA_BOLD, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
                         content.SetFontAndSize(font, altoFuente); // Tamaño de la fuente
                         content.SetColorFill(BaseColor.GRAY); // Color gris para mejor visibilidad
-                        
+
                         // Rotar y posicionar el texto
                         content.BeginText();
 
