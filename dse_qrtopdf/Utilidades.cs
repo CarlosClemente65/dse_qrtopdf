@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using iTextSharp.text.pdf;
 
 namespace dse_qrtopdf
 {
@@ -9,6 +11,8 @@ namespace dse_qrtopdf
         public string PDFEntrada = string.Empty; //Fichero de entrada
         public string PDFSalida = string.Empty; //Fichero de salida
         public string textoQR = string.Empty; //Texto a insertar en el QR
+        public bool VERIFACTU = false; //Si se quiere añadir los textos oficiales de VERI-FACTU
+        public string marcaAgua = string.Empty; //Texto a insertar como marca de agua
         public int margen = 2; //Representa la distancia respecto al margen izquierdo / derecho a añadir al recuadro del QR
         public int anchoQR = 30; //Tamaño del QR en milimetros
         public string alineacion = "IZQUIERDA";
@@ -23,23 +27,23 @@ namespace dse_qrtopdf
 
         public void CargaGuion(string guion)
         {
-            if (File.Exists(guion))
+            if(File.Exists(guion))
             {
                 string[] lineas = File.ReadAllLines(guion);
-                foreach (var linea in lineas)
+                foreach(var linea in lineas)
                 {
-                    if (string.IsNullOrEmpty(linea)) continue; //Evita lineas vacias
+                    if(string.IsNullOrEmpty(linea)) continue; //Evita lineas vacias
 
                     string clave = string.Empty;
                     string valor = string.Empty;
                     (clave, valor) = divideCadena(linea, '=');
 
-                    if (valor.StartsWith("\"") && valor.EndsWith("\""))
+                    if(valor.StartsWith("\"") && valor.EndsWith("\""))
                     {
                         valor = valor.Substring(1, valor.Length - 2);
                     }
 
-                    switch (clave)
+                    switch(clave)
                     {
                         case "ENTRADA":
                             //Operador ternario que asigna la ruta de ejecucion si no se pasa la ruta en el guion, o la ruta tal y como viene en el guion
@@ -47,7 +51,7 @@ namespace dse_qrtopdf
                             break;
 
                         case "SALIDA":
-                            PDFSalida = valor.Contains("\\") ? valor : Path.Combine(pathFicheros, valor); 
+                            PDFSalida = valor.Contains("\\") ? valor : Path.Combine(pathFicheros, valor);
                             break;
 
                         case "TEXTOQR":
@@ -72,6 +76,19 @@ namespace dse_qrtopdf
                         case "TIPO":
                             proceso = valor;
                             break;
+
+                        case "MARCA_AGUA":
+                            string texto = valor.Replace("\\n", "\n");
+                            marcaAgua = valor;
+                            break;
+
+                        case "VERIFACTU":
+                            if(valor.ToUpper() == "SI")
+                            {
+                                VERIFACTU = true;
+                            }
+                            break;
+
                     }
                 }
             }
@@ -83,7 +100,7 @@ namespace dse_qrtopdf
             string atributo = string.Empty;
             string valor = string.Empty;
             string[] partes = cadena.Split(new[] { divisor }, 2);
-            if (partes.Length == 2)
+            if(partes.Length == 2)
             {
                 atributo = partes[0].Trim();
                 valor = partes[1].Trim();
@@ -97,5 +114,60 @@ namespace dse_qrtopdf
             return valor * (float)dpi / pulgadas;
         }
 
+
+        public List<string> DividirTextoEnLineas(string texto, BaseFont fuente, float tamFuente, float anchoMaximo)
+        {
+            List<string> lineas = new List<string>();
+
+            // Dividir el texto segun los saltos de linea reales
+            string[] parrafos = texto.Split(new[] { "\r\n", "\\n" }, StringSplitOptions.None);
+
+            foreach(string parrafo in parrafos)
+            {
+                if(string.IsNullOrEmpty(parrafo))
+                {
+                    lineas.Add(string.Empty); // Añadir una línea vacía para los saltos de línea
+                    continue; // Evitar lineas vacias
+                }
+
+                float anchoParrafo = fuente.GetWidthPoint(parrafo, tamFuente); // Obtener el ancho del parrafo
+                if(anchoParrafo <= anchoMaximo)
+                {
+                    lineas.Add(parrafo); // Si el ancho del parrafo es menor que el ancho maximo, añadirlo directamente
+                }
+                else
+                {
+
+                    string[] palabras = parrafo.Split(' ');
+                    string lineaActual = "";
+
+                    foreach(string palabra in palabras)
+                    {
+                        string prueba = string.IsNullOrEmpty(lineaActual) ? palabra : lineaActual + " " + palabra;
+                        float ancho = fuente.GetWidthPoint(prueba, tamFuente);
+
+                        if(ancho <= anchoMaximo)
+                        {
+                            lineaActual = prueba;
+                        }
+                        else
+                        {
+                            if(!string.IsNullOrEmpty(lineaActual))
+                            {
+                                lineas.Add(lineaActual);
+                            }
+                            lineaActual = palabra;
+                        }
+                    }
+
+                    if(!string.IsNullOrEmpty(lineaActual))
+                    {
+                        lineas.Add(lineaActual);
+                    }
+                }
+            }
+
+            return lineas;
+        }
     }
 }

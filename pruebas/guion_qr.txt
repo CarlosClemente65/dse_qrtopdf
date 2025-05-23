@@ -1,7 +1,8 @@
-ENTRADA="d:\Programacion\c#\dse_qrtopdf\pruebas\archivo.pdf"
-SALIDA="d:\Programacion\c#\dse_qrtopdf\pruebas\salida_qr.pdf"
+ENTRADA="c:\Programacion\c#\dse_qrtopdf\pruebas\archivo.pdf"
+SALIDA="c:\Programacion\c#\dse_qrtopdf\pruebas\salida_qr.pdf"
 TIPO=1
 TEXTOQR="https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR?nif=89890001K&numserie=12345678-G33&fecha=01-09-2024&importe=241.4"
-ALINEACION=izquierda
-TAMAÑO=30
+ALINEACION=DERECHA
+TAMAÑO=20
 MARGEN=4
+VERIFACTU=SI

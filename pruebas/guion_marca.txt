@@ -1,3 +1,5 @@
 ENTRADA="C:\Programacion\c#\dse_qrtopdf\pruebas\archivo.pdf"
 SALIDA="C:\Programacion\c#\dse_qrtopdf\pruebas\salida_marca.pdf"
 TIPO=2
+MARCA_AGUA="DOCUMENTO BORRADOR (sin validez legal) \nLe pongo mas texto para que ocupe varias lineas a ver que tal sale que debe salir en dos lineas.\nAdemas le añado un tercer parrafo que tambien tiene mucha longitud que debe salir en varias lineas"
+
